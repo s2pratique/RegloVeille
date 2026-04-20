@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="RégloVeille">
+<meta name="theme-color" content="#0f4c35">
+<title>RégloVeille — Veille réglementaire sécurité</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green-900: #0a2e20;
+  --green-800: #0f4c35;
+  --green-700: #155e42;
+  --green-600: #1a7050;
+  --green-500: #1d9e75;
+  --green-400: #2dbf8e;
+  --green-100: #d0f0e4;
+  --green-50:  #edfaf4;
+  --amber-500: #e8961a;
+  --amber-100: #fef0d0;
+  --amber-50:  #fffaf0;
+  --red-500:   #d94040;
+  --red-100:   #fde8e8;
+  --red-50:    #fff5f5;
+  --blue-500:  #2563eb;
+  --blue-100:  #dbeafe;
+  --gray-900:  #111827;
+  --gray-800:  #1f2937;
+  --gray-700:  #374151;
+  --gray-600:  #4b5563;
+  --gray-500:  #6b7280;
+  --gray-300:  #d1d5db;
+  --gray-200:  #e5e7eb;
+  --gray-100:  #f3f4f6;
+  --gray-50:   #f9fafb;
+  --white:     #ffffff;
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow:    0 2px 8px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+  --font: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --transition: 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  font-family: var(--font);
+  background: var(--gray-100);
+  color: var(--gray-900);
+  height: 100%;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--white);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── TOPBAR ─────────────────────────────────────────────── */
+.topbar {
+  background: var(--green-800);
+  color: var(--white);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.topbar-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green-400);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.unread-pill {
+  background: var(--red-500);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  min-width: 22px;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.unread-pill.zero {
+  background: var(--green-600);
+}
+
+/* ─── SCROLLABLE CONTENT ─────────────────────────────────── */
+.page {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 80px;
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+/* ─── BOTTOM NAV ─────────────────────────────────────────── */
+.bottom-nav {
+  display: flex;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  flex-shrink: 0;
+  height: 64px;
+  padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  z-index: 10;
+}
+
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 4px;
+  font-family: var(--font);
+  color: var(--gray-500);
+  font-size: 10px;
+  font-weight: 500;
+  transition: var(--transition);
+  position: relative;
+}
+
+.nav-btn.active {
+  color: var(--green-600);
+}
+
+.nav-btn svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
+  transition: var(--transition);
+}
+
+.nav-btn.active svg {
+  stroke-width: 2.2;
+}
+
+.nav-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 18px);
+  background: var(--red-500);
+  color: var(--white);
+  font-size: 9px;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+}
+
+/* ─── FILTER BAR ─────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+  background: var(--white);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-bottom: 1px solid var(--gray-100);
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  white-space: nowrap;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1.5px solid var(--gray-200);
+  background: var(--white);
+  color: var(--gray-600);
+  transition: var(--transition);
+  font-family: var(--font);
+}
+.filter-chip.active { border-color: transparent; }
+.filter-chip[data-f="all"].active    { background: var(--gray-900); color: var(--white); }
+.filter-chip[data-f="caces"].active  { background: #4f46e5; color: var(--white); border-color: #4f46e5; }
+.filter-chip[data-f="elec"].active   { background: var(--amber-500); color: var(--white); border-color: var(--amber-500); }
+.filter-chip[data-f="aipr"].active   { background: var(--blue-500); color: var(--white); border-color: var(--blue-500); }
+.filter-chip[data-f="hauteur"].active{ background: var(--green-600); color: var(--white); border-color: var(--green-600); }
+
+/* ─── ALERT CARDS ─────────────────────────────────────────── */
+.alerts-list {
+  padding: 8px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.alert-card.read {
+  opacity: 0.62;
+}
+
+.alert-card-top {
+  padding: 14px 14px 10px;
+  cursor: pointer;
+}
+
+.alert-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.alert-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--gray-900);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.urgency-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+.urgency-badge.urgente  { background: var(--red-100);   color: var(--red-500); }
+.urgency-badge.importante { background: var(--amber-100); color: var(--amber-500); }
+.urgency-badge.info     { background: var(--green-50);  color: var(--green-600); }
+.urgency-badge.lu       { background: var(--gray-100);  color: var(--gray-500); }
+
+.alert-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.alert-date {
+  font-size: 11px;
+  color: var(--gray-500);
+  font-family: var(--font-mono);
+}
+
+.tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tag-caces   { background: #ede9fe; color: #4f46e5; }
+.tag-elec    { background: var(--amber-100); color: #92400e; }
+.tag-aipr    { background: var(--blue-100); color: #1e40af; }
+.tag-hauteur { background: var(--green-50); color: var(--green-700); }
+
+/* urgency left border */
+.alert-card[data-urgency="urgente"]   { border-left: 4px solid var(--red-500); }
+.alert-card[data-urgency="importante"]{ border-left: 4px solid var(--amber-500); }
+.alert-card[data-urgency="info"]      { border-left: 4px solid var(--green-500); }
+
+/* ─── EXPANDED BODY ──────────────────────────────────────── */
+.alert-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--gray-100);
+  margin-top: 4px;
+  padding-top: 12px;
+}
+
+.alert-body.open { display: block; }
+
+.alert-summary {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--gray-700);
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.alert-summary strong { color: var(--gray-900); font-weight: 500; }
+
+.alert-impacts {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.impact-row {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+}
+
+.impact-bullet {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green-500);
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+
+.impact-text {
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--blue-500);
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.source-link svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  flex-shrink: 0;
+}
+
+.read-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: var(--transition);
+  background: var(--green-500);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.read-btn:active { transform: scale(0.98); }
+
+.read-btn.already-read {
+  background: var(--gray-100);
+  color: var(--gray-500);
+  cursor: default;
+}
+
+/* ─── STATS BAR ──────────────────────────────────────────── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.stat-box {
+  background: var(--gray-50);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--gray-900);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.stat-num.green { color: var(--green-600); }
+.stat-num.red   { color: var(--red-500); }
+
+.stat-label {
+  font-size: 10px;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+/* ─── QUALIOPI BAR ───────────────────────────────────────── */
+.qualiopi-bar {
+  margin: 12px 16px 0;
+  background: var(--green-50);
+  border: 1.5px solid var(--green-100);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.qualiopi-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.qualiopi-text {
+  flex: 1;
+}
+
+.qualiopi-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green-800);
+  margin-bottom: 2px;
+}
+
+.qualiopi-sub {
+  font-size: 11px;
+  color: var(--green-600);
+  line-height: 1.4;
+}
+
+/* ─── PROGRESS BAR ───────────────────────────────────────── */
+.progress-wrap {
+  margin: 12px 16px 0;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.progress-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.progress-pct {
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--green-600);
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--green-500);
+  border-radius: 20px;
+  transition: width 0.6s ease;
+}
+
+/* ─── RECENT SECTION ─────────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 8px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.see-all-btn {
+  font-size: 12px;
+  color: var(--green-600);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font);
+  padding: 0;
+}
+
+/* ─── MINI ALERT (dashboard) ─────────────────────────────── */
+.mini-alerts {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-alert {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.mini-alert[data-urgency="urgente"]    { border-left: 3px solid var(--red-500); }
+.mini-alert[data-urgency="importante"] { border-left: 3px solid var(--amber-500); }
+
+.mini-alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mini-dot-red    { background: var(--red-500); }
+.mini-dot-amber  { background: var(--amber-500); }
+.mini-dot-green  { background: var(--green-500); }
+
+.mini-alert-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.mini-alert-title {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.mini-alert-date {
+  font-size: 10.5px;
+  color: var(--gray-500);
+  font-family: var(--font-mono);
+}
+
+/* ─── DOMAIN GRID ────────────────────────────────────────── */
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  padding: 0 16px;
+  margin-top: 4px;
+}
+
+.domain-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+
+.domain-card:active { transform: scale(0.97); }
+
+.domain-count {
+  font-size: 26px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.domain-name {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.domain-card.caces   .domain-count { color: #4f46e5; }
+.domain-card.caces   .domain-name  { color: #4f46e5; }
+.domain-card.elec    .domain-count { color: var(--amber-500); }
+.domain-card.elec    .domain-name  { color: #92400e; }
+.domain-card.aipr    .domain-count { color: var(--blue-500); }
+.domain-card.aipr    .domain-name  { color: #1e40af; }
+.domain-card.hauteur .domain-count { color: var(--green-600); }
+.domain-card.hauteur .domain-name  { color: var(--green-700); }
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--gray-500);
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.empty-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.empty-sub {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ─── PITCH PAGE ─────────────────────────────────────────── */
+.pitch-hero {
+  background: var(--green-800);
+  color: var(--white);
+  padding: 28px 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.pitch-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+}
+
+.pitch-hero-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+
+.pitch-tagline {
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.85;
+  font-weight: 300;
+  max-width: 340px;
+}
+
+.pitch-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0 0;
+}
+
+.kpi-box {
+  background: rgba(255,255,255,0.1);
+  border-radius: var(--radius);
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.kpi-num {
+  font-size: 20px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-bottom: 2px;
+}
+
+.kpi-label {
+  font-size: 9.5px;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.pitch-section {
+  padding: 20px 16px 0;
+}
+
+.pitch-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pitch-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+.feature-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-icon-wrap {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.feature-content {}
+
+.feature-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 3px;
+}
+
+.feature-desc {
+  font-size: 12.5px;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+.ba-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ba-card {
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.ba-card.before {
+  background: var(--red-50);
+  border: 1px solid var(--red-100);
+}
+
+.ba-card.after {
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+}
+
+.ba-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.ba-card.before .ba-label { color: var(--red-500); }
+.ba-card.after  .ba-label { color: var(--green-600); }
+
+.ba-text {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ba-card.before .ba-text { color: #7f1d1d; }
+.ba-card.after  .ba-text { color: var(--green-800); }
+
+.target-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.target-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+}
+
+.target-icon {
+  font-size: 22px;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.target-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin-bottom: 2px;
+}
+
+.target-desc {
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+.pricing-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.price-card {
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.price-card.featured {
+  border-color: var(--green-400);
+  border-width: 2px;
+  background: var(--green-50);
+}
+
+.price-amount {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--gray-900);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.price-card.featured .price-amount { color: var(--green-700); }
+
+.price-details {}
+
+.price-plan {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-500);
+  margin-bottom: 2px;
+}
+
+.price-card.featured .price-plan { color: var(--green-600); }
+
+.price-desc {
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
+/* ─── TOAST ──────────────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--gray-900);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 30px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 100;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─── CHEVRON ────────────────────────────────────────────── */
+.chevron {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+  stroke: var(--gray-400);
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chevron.open { transform: rotate(180deg); }
+
+/* ─── PAGE DASHBOARD EXTRAS ──────────────────────────────── */
+.dash-date-band {
+  background: var(--green-800);
+  color: rgba(255,255,255,0.75);
+  padding: 8px 16px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+
+/* ─── SEPARATOR ──────────────────────────────────────────── */
+.sep {
+  height: 1px;
+  background: var(--gray-100);
+  margin: 8px 0;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-dot"></div>
+      RégloVeille
+    </div>
+    <div class="topbar-right">
+      <div id="unread-pill" class="unread-pill">—</div>
+    </div>
+  </div>
+
+  <!-- PAGE: DASHBOARD -->
+  <div class="page active" id="page-home">
+    <div class="dash-date-band">Période : avr. 2025 → avr. 2026 · <span id="today-date"></span></div>
+
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-num" id="stat-total">—</div>
+        <div class="stat-label">alertes<br>au total</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num red" id="stat-unread">—</div>
+        <div class="stat-label">non<br>lues</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num green" id="stat-read">—</div>
+        <div class="stat-label">lues &amp;<br>tracées</div>
+      </div>
+    </div>
+
+    <div class="qualiopi-bar">
+      <div class="qualiopi-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      </div>
+      <div class="qualiopi-text">
+        <div class="qualiopi-title">Indicateur Qualiopi — veille</div>
+        <div class="qualiopi-sub" id="qualiopi-sub">Calcul en cours…</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <div class="progress-label">Progression de lecture</div>
+        <div class="progress-pct" id="progress-pct">0%</div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Par domaine</div>
+    </div>
+    <div class="domain-grid" id="domain-grid"></div>
+
+    <div class="section-header">
+      <div class="section-title">Dernières alertes</div>
+      <button class="see-all-btn" onclick="showPage('alertes')">Tout voir</button>
+    </div>
+    <div class="mini-alerts" id="mini-alerts"></div>
+  </div>
+
+  <!-- PAGE: ALERTES -->
+  <div class="page" id="page-alertes">
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-chip active" data-f="all" onclick="setFilter('all')">Toutes</button>
+      <button class="filter-chip" data-f="caces" onclick="setFilter('caces')">CACES</button>
+      <button class="filter-chip" data-f="elec" onclick="setFilter('elec')">Électricité</button>
+      <button class="filter-chip" data-f="aipr" onclick="setFilter('aipr')">AIPR</button>
+      <button class="filter-chip" data-f="hauteur" onclick="setFilter('hauteur')">Hauteur</button>
+    </div>
+    <div class="alerts-list" id="alerts-list"></div>
+  </div>
+
+  <!-- PAGE: PITCH -->
+  <div class="page" id="page-pitch">
+    <div class="pitch-hero">
+      <div class="pitch-hero-logo">
+        <div class="topbar-dot"></div>
+        RégloVeille
+      </div>
+      <div class="pitch-tagline">Le carnet de bord réglementaire du formateur sécurité. Plus jamais pris de court par une loi qui change.</div>
+      <div class="pitch-kpis">
+        <div class="kpi-box">
+          <div class="kpi-num">12+</div>
+          <div class="kpi-label">textes à surveiller</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num">32</div>
+          <div class="kpi-label">indicateurs Qualiopi</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-num">0</div>
+          <div class="kpi-label">outil dédié existant</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <div class="pitch-section-title">Le problème</div>
+      <div class="ba-grid">
+        <div class="ba-card before">
+          <div class="ba-label">Sans RégloVeille</div>
+          <div class="ba-text">Un décret change. Le formateur l'apprend 6 mois plus tard. Son dossier Qualiopi ne prouve rien. L'auditeur note un écart.</div>
+        </div>
+        <div class="ba-card after">
+          <div class="ba-label">Avec RégloVeille</div>
+          <div class="ba-text">L'alerte arrive le jour J. Le formateur lit, note et trace. L'auditeur trouve une preuve datée. Aucun écart.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <div class="pitch-section-title">Ce que fait l'app</div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap" style="background:#ede9fe;">📡</div>
+        <div class="feature-content">
+          <div class="feature-title">Surveillance automatique</div>
+          <div class="feature-desc">Légifrance, Journal Officiel, INRS, CNAM — dès qu'un texte touche vos domaines, il remonte dans l'app.</div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap" style="background:#fef0d0;">🏷️</div>
+        <div class="feature-content">
+          <div class="feature-title">Classement par domaine</div>
+          <div class="feature-desc">CACES, Électricité, AIPR, Travail en hauteur — chaque alerte est étiquetée. Vous filtrez en un geste.</div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap" style="background:#dbeafe;">✍️</div>
+        <div class="feature-content">
+          <div class="feature-title">Lecture tracée</div>
+          <div class="feature-desc">Un clic pour marquer "lu". L'action est horodatée et archivée — c'est votre preuve Qualiopi, prête pour l'audit.</div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap" style="background:#dcfce7;">📥</div>
+        <div class="feature-content">
+          <div class="feature-title">Export Qualiopi en 1 clic</div>
+          <div class="feature-desc">PDF listant toutes les lectures de l'année, avec dates, sources et domaines. La preuve est prête en 10 secondes.</div>
+        </div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon-wrap" style="background:#fde8e8;">🔔</div>
+        <div class="feature-content">
+          <div class="feature-title">Alertes email immédiates</div>
+          <div class="feature-desc">Dès qu'un texte urgent est détecté, vous recevez un email avec le résumé et le lien source officiel.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <div class="pitch-section-title">Pour qui ?</div>
+      <div class="target-row">
+        <div class="target-card">
+          <div class="target-icon">👤</div>
+          <div>
+            <div class="target-title">Formateur indépendant</div>
+            <div class="target-desc">Seul face à la réglementation. RégloVeille est votre service de veille personnel, à 1/10e du prix d'une veille juridique professionnelle.</div>
+          </div>
+        </div>
+        <div class="target-card">
+          <div class="target-icon">🏢</div>
+          <div>
+            <div class="target-title">Petit centre de formation</div>
+            <div class="target-desc">2 à 5 formateurs, certification Qualiopi. L'outil mutualisé remplace les alertes Google bricolées et produit une preuve d'audit exploitable.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <div class="pitch-section-title">Tarifs</div>
+      <div class="pricing-row">
+        <div class="price-card">
+          <div class="price-amount">Gratuit</div>
+          <div class="price-details">
+            <div class="price-plan">Découverte</div>
+            <div class="price-desc">3 dernières alertes · sans export · sans traçage</div>
+          </div>
+        </div>
+        <div class="price-card featured">
+          <div class="price-amount">15 €/mois</div>
+          <div class="price-details">
+            <div class="price-plan">Solo ★ Recommandé</div>
+            <div class="price-desc">Toutes alertes · journal tracé · export PDF · alertes email</div>
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-amount">29 €/mois</div>
+          <div class="price-details">
+            <div class="price-plan">Centre</div>
+            <div class="price-desc">Multi-utilisateurs · tableau de bord équipe · accès partagé</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--gray-50);border-radius:var(--radius-lg);padding:14px;margin-bottom:20px;font-size:12.5px;color:var(--gray-600);line-height:1.6;">
+        <strong style="color:var(--gray-900);display:block;margin-bottom:4px;">Version démo</strong>
+        Cette application est une démonstration fonctionnelle des possibilités de RégloVeille. Les alertes affichées sont réelles et sourcées. La fonctionnalité de journal Qualiopi et d'export PDF sera intégrée dans la version finale.
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="showPage('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Accueil
+    </button>
+    <button class="nav-btn" id="nav-alertes" onclick="showPage('alertes')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      Alertes
+      <div class="nav-badge" id="nav-badge" style="display:none"></div>
+    </button>
+    <button class="nav-btn" id="nav-pitch" onclick="showPage('pitch')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      À propos
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────
+const ALERTS = [
+  {
+    id: 1,
+    title: "Décret n° 2025-355 du 18 avril 2025 — fin du SIR pour conducteurs d'engins et habilitations électriques",
+    date: "18 avr. 2025",
+    source: "Journal Officiel",
+    tags: ["caces", "elec"],
+    urgency: "urgente",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> Les conducteurs d'engins (R482, R486, R489, R490…) et les titulaires d'habilitations électriques BR, B1, B2, BC… ne sont plus en suivi individuel renforcé (SIR) à compter du 1er octobre 2025. L'avis d'aptitude est remplacé par une <strong>attestation d'absence de contre-indications médicales</strong>, valable 5 ans, délivrée par le médecin du travail.",
+    impacts: [
+      "Impact direct sur votre discours en formation : vos stagiaires employeurs doivent adapter leurs dossiers d'autorisation de conduite dès oct. 2025.",
+      "Le contenu de vos formations CACES et habilitations élec reste inchangé — seule la pièce médicale à fournir change.",
+      "Les CACES R484 et R485 ne sont pas concernés par l'attestation médicale."
+    ],
+    url: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000051497302",
+    urlLabel: "Légifrance — Décret n° 2025-355"
+  },
+  {
+    id: 2,
+    title: "Arrêté du 26 septembre 2025 — abrogation de l'arrêté de 1998, nouvelle liste des engins soumis à autorisation de conduite",
+    date: "30 sept. 2025",
+    source: "Journal Officiel",
+    tags: ["caces"],
+    urgency: "urgente",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> L'arrêté du 2 décembre 1998 est abrogé et remplacé. La liste des équipements nécessitant une autorisation de conduite reste globalement la même (grues, chariots à conducteur porté, PEMP, engins de chantier). La condition médicale (avis d'aptitude) est remplacée par l'attestation d'absence de contre-indications, cohérente avec le décret 2025-355.",
+    impacts: [
+      "Vos supports de formation faisant référence à l'arrêté de 1998 sont à mettre à jour.",
+      "Le modèle officiel d'attestation médicale est défini par un second arrêté du même jour.",
+      "En vigueur depuis le 1er octobre 2025."
+    ],
+    url: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000052304307",
+    urlLabel: "Légifrance — Arrêté du 26 septembre 2025"
+  },
+  {
+    id: 3,
+    title: "Recommandation R482A — remplacement de la R482 pour les engins de chantier au 1er décembre 2025",
+    date: "1 déc. 2025",
+    source: "CNAM / Assurance Maladie Risques Professionnels",
+    tags: ["caces"],
+    urgency: "importante",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> La recommandation R482 est remplacée par la <strong>R482A</strong>. La modification principale porte sur la classification des moto-basculeurs, désormais classés par capacité utile et non par masse. Les autres catégories (A à G) restent inchangées. Les CACES R482 existants restent valides jusqu'à leur échéance — cohabitation des deux recommandations.",
+    impacts: [
+      "Si vous formez au CACES R482 (engins de chantier), vos supports et les catégories d'évaluation des moto-basculeurs sont à mettre à jour.",
+      "La R482A met l'accent sur la qualification des formateurs — vérifier votre propre accréditation.",
+      "Aucun impact sur R485, R486, R489, R490."
+    ],
+    url: "https://www.inrs.fr/demarche/caces-certificat-aptitude-conduite-securite/ce-qu-il-faut-retenir.html",
+    urlLabel: "INRS — page CACES, rubrique R482A"
+  },
+  {
+    id: 4,
+    title: "Décret n° 2024-552 — nouvelles obligations de formation pour travaux non électriques à proximité de réseaux (en vigueur 19 déc. 2024)",
+    date: "19 déc. 2024",
+    source: "Journal Officiel",
+    tags: ["elec", "aipr"],
+    urgency: "urgente",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> Tout travail réalisé dans un rayon de <strong>50 mètres</strong> autour d'un ouvrage électrique est désormais soumis à des obligations renforcées : évaluation des risques, distances de sécurité, information des travailleurs, et pour certains travaux spécifiques, une <strong>habilitation ou formation obligatoire</strong>. Vise les travaux BTP, élagage, agriculture, maçonnerie à proximité de lignes sous tension.",
+    impacts: [
+      "Si vos clients envoient des équipes sur chantier (BTP, TP), ce texte crée de nouveaux besoins de formation à la prévention du risque électrique pour des non-électriciens.",
+      "L'exigence d'habilitation pour certains travaux spécifiques n'entre en vigueur que le 7 juillet 2027.",
+      "Vos formations AIPR et habilitations B0/H0 deviennent encore plus pertinentes pour les entreprises du BTP — opportunité commerciale directe."
+    ],
+    url: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049738940",
+    urlLabel: "Légifrance — Décret n° 2024-552"
+  },
+  {
+    id: 5,
+    title: "Arrêtés du 5 juillet 2024 — équivalence AIPR / habilitation BF-HF, en vigueur le 7 janvier 2025",
+    date: "7 janv. 2025",
+    source: "Journal Officiel",
+    tags: ["elec", "aipr"],
+    urgency: "importante",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> Depuis le 7 janvier 2025, la réussite à l'examen AIPR opérateur vaut équivalence pour la partie théorique de l'habilitation <strong>BF-HF niveau exécutant</strong>. La réussite aux niveaux opérateur + encadrant vaut pour le niveau chargé de chantier. L'employeur dispose ensuite de <strong>6 mois maximum</strong> pour compléter la formation pratique. Cette équivalence ne dispense pas de la partie pratique.",
+    impacts: [
+      "Si vous formez à l'AIPR et aux habilitations électriques, vous pouvez proposer un parcours combiné AIPR + BF-HF plus efficace.",
+      "Attention : l'équivalence théorique est limitée à 6 mois après la réussite AIPR — informer vos clients de ce délai.",
+      "Potentiel commercial : les entreprises du BTP peuvent optimiser leur budget formation."
+    ],
+    url: "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000049892304",
+    urlLabel: "Légifrance — Arrêté du 5 juillet 2024 (équivalence)"
+  },
+  {
+    id: 6,
+    title: "FAQ CACES 2020, édition 7 — clarifications suivi médical, cohabitation R482/R482A, testeurs (applicable 1er mars 2026)",
+    date: "21 janv. 2026",
+    source: "INRS / CNAM",
+    tags: ["caces"],
+    urgency: "importante",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> La FAQ CACES 2020 passe en édition 7. Elle intègre les nouvelles dispositions du décret 2025-355 (attestation médicale), clarifie la cohabitation R482 / R482A, et précise les règles pour les testeurs. Document de référence pour tout formateur CACES — les passages modifiés sont indiqués en bleu dans le document. Applicable au 1er mars 2026.",
+    impacts: [
+      "Document de référence à télécharger et à lire avant le 1er mars 2026 si vous êtes testeur ou OTC.",
+      "Contient des clarifications importantes sur les conditions médicales pour gerbeurs R485 et ponts R484.",
+      "Précise les nouvelles règles de dispense de CACES pour certaines catégories de testeurs."
+    ],
+    url: "https://www.inrs.fr/dms/inrs/PDF/caces-faq/FAQ-CACES-2020-Edition-7.pdf",
+    urlLabel: "INRS — FAQ CACES 2020, édition 7 (PDF direct)"
+  },
+  {
+    id: 7,
+    title: "Rappel INRS — absence de durée légale de validité pour la formation travail en hauteur",
+    date: "Janv. 2025",
+    source: "INRS / Code du travail art. R4323-69",
+    tags: ["hauteur"],
+    urgency: "info",
+    read: false,
+    summary: "<strong>Ce qu'il faut retenir :</strong> Il n'existe toujours <strong>aucune durée de validité réglementaire</strong> pour la formation travail en hauteur (EPI antichute, échafaudage). Le Code du travail indique que la formation doit être renouvelée « aussi souvent que nécessaire ». L'INRS recommande environ <strong>5 ans pour les professionnels exposés régulièrement</strong>, 1 à 2 ans pour les opérateurs occasionnels.",
+    impacts: [
+      "Point à clarifier systématiquement en formation : expliquer à vos clients qu'il n'y a pas de recyclage réglementaire à date fixe.",
+      "Utile pour votre positionnement commercial : proposer une recommandation de recyclage formalisée dans vos devis.",
+      "Source de confusion fréquente chez les employeurs — soyez le référent sur ce point."
+    ],
+    url: "https://www.inrs.fr/risques/chutes-hauteur/reglementation-travail-hauteur.html",
+    urlLabel: "INRS — réglementation travail en hauteur"
+  },
+  {
+    id: 8,
+    title: "Questions/Réponses Ministère du Travail — modalités d'application de l'attestation médicale CACES et habilitations élec",
+    date: "6 nov. 2025",
+    source: "Ministère du Travail",
+    tags: ["caces", "elec"],
+    urgency: "importante",
+    read: false,
+    summary: "<strong>Ce qui change :</strong> Le Ministère du Travail publie un article Q/R officiel clarifiant les modalités d'application du décret 2025-355 pour les cas concrets : intérimaires, salariés multi-engins, multi-habilitations, refus d'attestation et voies de recours. Document pratique pour répondre aux questions de vos clients employeurs.",
+    impacts: [
+      "Clarifie le cas des intérimaires : l'attestation médicale suit le salarié, pas l'entreprise.",
+      "Précise que les avis d'aptitude émis avant le 30 sept. 2025 valent attestation pour 5 ans.",
+      "Voies de recours en cas de refus du médecin du travail : conseil de prud'hommes."
+    ],
+    url: "https://travail-emploi.gouv.fr/sante-au-travail/prevention-des-risques/article/autorisation-de-conduite-et-habilitation-electrique",
+    urlLabel: "Ministère du Travail — Q/R suivi médical"
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────
+const readSet = new Set(JSON.parse(localStorage.getItem('rv_read') || '[]'));
+let currentFilter = 'all';
+
+function saveRead() {
+  localStorage.setItem('rv_read', JSON.stringify([...readSet]));
+}
+
+function isRead(id) { return readSet.has(id); }
+
+function markRead(id) {
+  readSet.add(id);
+  saveRead();
+  renderAll();
+  showToast('Alerte marquée comme lue ✓');
+}
+
+// ─── COMPUTED ─────────────────────────────────────────────
+function getStats() {
+  const total = ALERTS.length;
+  const read = ALERTS.filter(a => isRead(a.id)).length;
+  const unread = total - read;
+  const pct = Math.round(read / total * 100);
+  return { total, read, unread, pct };
+}
+
+function getDomainCounts() {
+  const domains = { caces: 0, elec: 0, aipr: 0, hauteur: 0 };
+  ALERTS.forEach(a => a.tags.forEach(t => { if (domains[t] !== undefined) domains[t]++; }));
+  return domains;
+}
+
+function filteredAlerts() {
+  if (currentFilter === 'all') return ALERTS;
+  return ALERTS.filter(a => a.tags.includes(currentFilter));
+}
+
+// ─── RENDER ───────────────────────────────────────────────
+function tagHtml(tag) {
+  const labels = { caces: 'CACES', elec: 'Élec.', aipr: 'AIPR', hauteur: 'Hauteur' };
+  return `<span class="tag tag-${tag}">${labels[tag]}</span>`;
+}
+
+function urgencyLabel(u, read) {
+  if (read) return `<span class="urgency-badge lu">Lu</span>`;
+  const map = { urgente: 'Urgente', importante: 'Importante', info: 'Info' };
+  return `<span class="urgency-badge ${u}">${map[u] || u}</span>`;
+}
+
+function renderStats() {
+  const { total, read, unread, pct } = getStats();
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-unread').textContent = unread;
+  document.getElementById('stat-read').textContent = read;
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('qualiopi-sub').textContent =
+    `${read} lecture${read !== 1 ? 's' : ''} tracée${read !== 1 ? 's' : ''} sur ${total} · ${pct}% de conformité estimée`;
+
+  const pill = document.getElementById('unread-pill');
+  pill.textContent = unread;
+  pill.className = 'unread-pill' + (unread === 0 ? ' zero' : '');
+
+  const badge = document.getElementById('nav-badge');
+  if (unread > 0) {
+    badge.style.display = 'flex';
+    badge.textContent = unread;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  const today = new Date();
+  document.getElementById('today-date').textContent =
+    today.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderDomainGrid() {
+  const counts = getDomainCounts();
+  const labels = { caces: 'CACES', elec: 'Électricité', aipr: 'AIPR', hauteur: 'Hauteur' };
+  document.getElementById('domain-grid').innerHTML = Object.entries(counts).map(([k, v]) =>
+    `<div class="domain-card ${k}" onclick="setFilter('${k}');showPage('alertes')">
+      <div class="domain-count">${v}</div>
+      <div class="domain-name">${labels[k]}</div>
+    </div>`
+  ).join('');
+}
+
+function renderMiniAlerts() {
+  const recent = [...ALERTS].filter(a => !isRead(a.id)).slice(0, 3);
+  const el = document.getElementById('mini-alerts');
+  if (recent.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-title">Toutes les alertes sont lues</div><div class="empty-sub">Votre dossier Qualiopi est à jour.</div></div>`;
+    return;
+  }
+  const dotMap = { urgente: 'mini-dot-red', importante: 'mini-dot-amber', info: 'mini-dot-green' };
+  el.innerHTML = recent.map(a =>
+    `<div class="mini-alert" data-urgency="${a.urgency}" onclick="openAlert(${a.id})">
+      <div class="mini-alert-dot ${dotMap[a.urgency]}"></div>
+      <div class="mini-alert-text">
+        <div class="mini-alert-title">${a.title}</div>
+        <div class="mini-alert-date">${a.date} · ${a.source}</div>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function renderAlertsList() {
+  const list = filteredAlerts();
+  const el = document.getElementById('alerts-list');
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Aucune alerte</div><div class="empty-sub">Aucune alerte pour ce filtre.</div></div>`;
+    return;
+  }
+  el.innerHTML = list.map(a => {
+    const read = isRead(a.id);
+    return `
+    <div class="alert-card ${read ? 'read' : ''}" data-urgency="${a.urgency}" id="card-${a.id}">
+      <div class="alert-card-top" onclick="toggleCard(${a.id})">
+        <div class="alert-card-header">
+          <div class="alert-title">${a.title}</div>
+          ${urgencyLabel(a.urgency, read)}
+        </div>
+        <div class="alert-meta">
+          <span class="alert-date">${a.date}</span>
+          <span style="color:var(--gray-300);font-size:11px">·</span>
+          <span class="alert-date">${a.source}</span>
+          ${a.tags.map(tagHtml).join('')}
+          <svg class="chevron" id="chev-${a.id}" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+      <div class="alert-body" id="body-${a.id}">
+        <div class="alert-summary">${a.summary}</div>
+        <div class="alert-impacts">
+          ${a.impacts.map(i => `<div class="impact-row"><div class="impact-bullet"></div><div class="impact-text">${i}</div></div>`).join('')}
+        </div>
+        <a class="source-link" href="${a.url}" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          ${a.urlLabel}
+        </a>
+        ${read
+          ? `<button class="read-btn already-read" disabled>✓ Déjà marquée comme lue</button>`
+          : `<button class="read-btn" onclick="markRead(${a.id})">Marquer comme lue</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderStats();
+  renderDomainGrid();
+  renderMiniAlerts();
+  renderAlertsList();
+}
+
+// ─── INTERACTIONS ─────────────────────────────────────────
+function toggleCard(id) {
+  const body = document.getElementById(`body-${id}`);
+  const chev = document.getElementById(`chev-${id}`);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  // close all
+  document.querySelectorAll('.alert-body.open').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.chevron.open').forEach(c => c.classList.remove('open'));
+  if (!isOpen) {
+    body.classList.add('open');
+    chev.classList.add('open');
+  }
+}
+
+function openAlert(id) {
+  showPage('alertes');
+  setTimeout(() => {
+    const card = document.getElementById(`card-${id}`);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => toggleCard(id), 300);
+    }
+  }, 50);
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.f === f);
+  });
+  renderAlertsList();
+}
+
+// ─── PAGE NAV ─────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
+}
+
+// ─── TOAST ────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── INIT ─────────────────────────────────────────────────
+renderAll();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
